@@ -128,3 +128,49 @@ def get_pricing_data():
     except Exception as e:
         frappe.log_error(f"Error fetching pricing data: {e}")
         return []
+
+@frappe.whitelist()
+def get_filter_options():
+    """Get filter options for stock page (companies, warehouses, brands, item groups)"""
+    try:
+        # Get companies
+        companies = frappe.db.get_all('Company', fields=['name'], limit=50)
+        company_list = [c['name'] for c in companies]
+        
+        # Get warehouses
+        warehouses = frappe.db.get_all('Warehouse', 
+            filters={'is_group': 0, 'disabled': 0},
+            fields=['name'],
+            limit=50
+        )
+        warehouse_list = [w['name'] for w in warehouses]
+        
+        # Get brands
+        brands = frappe.db.get_all('Brand', 
+            fields=['name'],
+            limit=50
+        )
+        brand_list = [b['name'] for b in brands]
+        
+        # Get item groups
+        item_groups = frappe.db.get_all('Item Group', 
+            filters={'is_group': 0},
+            fields=['name'],
+            limit=50
+        )
+        group_list = [g['name'] for g in item_groups]
+        
+        return {
+            'companies': company_list,
+            'warehouses': warehouse_list,
+            'brands': brand_list,
+            'groups': group_list,
+        }
+    except Exception as e:
+        frappe.log_error(f"Error fetching filter options: {e}")
+        return {
+            'companies': [],
+            'warehouses': [],
+            'brands': [],
+            'groups': [],
+        }

@@ -9,10 +9,10 @@
 
     <!-- Sidebar -->
     <div
-      class="fixed top-0 left-0 h-full w-64 bg-white shadow-2xl z-50 transition-all duration-500 ease-out"
+      class="fixed top-0 left-0 h-screen w-64 bg-white shadow-2xl z-50 transition-all duration-500 ease-out flex flex-col"
       :class="{ '-translate-x-full': !sidebarOpen, 'translate-x-0': sidebarOpen }"
     >
-      <div class="p-4">
+      <div class="p-4 flex flex-col h-full">
         <div class="flex items-center justify-between mb-4">
           <h2 class="text-xl font-bold text-gray-900">Menu</h2>
           <button
@@ -24,35 +24,135 @@
             </svg>
           </button>
         </div>
-        <nav class="space-y-2">
-          <Link
-            to="/"
-            class="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+        <!-- Filters -->
+        <div class="space-y-2 overflow-y-auto flex-1">
+          <!-- Company Filter -->
+          <div class="border border-gray-200 rounded-lg">
+            <button
+              @click="toggleSection('company')"
+              class="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <span class="font-medium text-gray-700">By Company</span>
+              <svg
+                class="w-5 h-5 text-gray-500 transition-transform"
+                :class="{ 'rotate-180': openSections.company }"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </button>
+            <div v-show="openSections.company" class="p-2 space-y-2">
+              <label v-for="company in ($resources.filterData.data?.companies || [])" :key="company" class="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-1 rounded">
+                <input
+                  type="checkbox"
+                  v-model="filters.companies"
+                  :value="company"
+                  class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <span class="text-sm text-gray-700">{{ company }}</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Warehouse Filter -->
+          <div class="border border-gray-200 rounded-lg">
+            <button
+              @click="toggleSection('warehouse')"
+              class="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <span class="font-medium text-gray-700">By Warehouse</span>
+              <svg
+                class="w-5 h-5 text-gray-500 transition-transform"
+                :class="{ 'rotate-180': openSections.warehouse }"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </button>
+            <div v-show="openSections.warehouse" class="p-2 space-y-2">
+              <label v-for="warehouse in ($resources.filterData.data?.warehouses || [])" :key="warehouse" class="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-1 rounded">
+                <input
+                  type="checkbox"
+                  v-model="filters.warehouses"
+                  :value="warehouse"
+                  class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <span class="text-sm text-gray-700">{{ warehouse }}</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Brand Filter -->
+          <div class="border border-gray-200 rounded-lg">
+            <button
+              @click="toggleSection('brand')"
+              class="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <span class="font-medium text-gray-700">By Brand</span>
+              <svg
+                class="w-5 h-5 text-gray-500 transition-transform"
+                :class="{ 'rotate-180': openSections.brand }"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </button>
+            <div v-show="openSections.brand" class="p-2 space-y-2">
+              <label v-for="brand in ($resources.filterData.data?.brands || [])" :key="brand" class="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-1 rounded">
+                <input
+                  type="checkbox"
+                  v-model="filters.brands"
+                  :value="brand"
+                  class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <span class="text-sm text-gray-700">{{ brand }}</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Group Filter -->
+          <div class="border border-gray-200 rounded-lg">
+            <button
+              @click="toggleSection('group')"
+              class="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <span class="font-medium text-gray-700">By Group</span>
+              <svg
+                class="w-5 h-5 text-gray-500 transition-transform"
+                :class="{ 'rotate-180': openSections.group }"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </button>
+            <div v-show="openSections.group" class="p-2 space-y-2">
+              <label v-for="group in ($resources.filterData.data?.groups || [])" :key="group" class="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-1 rounded">
+                <input
+                  type="checkbox"
+                  v-model="filters.groups"
+                  :value="group"
+                  class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <span class="text-sm text-gray-700">{{ group }}</span>
+              </label>
+            </div>
+          </div>
+
+          <button
+            @click="applyFilters"
+            class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors"
           >
-            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
-            </svg>
-            Dashboard
-          </Link>
-          <Link
-            to="/pos"
-            class="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
-            </svg>
-            POS
-          </Link>
-          <Link
-            to="/pricing"
-            class="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-            Pricing
-          </Link>
-        </nav>
+            Apply Filters
+          </button>
+        </div>
       </div>
     </div>
 
@@ -111,7 +211,25 @@ export default {
       sidebarOpen: false,
       clyValues: this.generateValues(),
       sphValues: this.generateValues(),
+      openSections: {
+        company: false,
+        warehouse: false,
+        brand: false,
+        group: false,
+      },
+      filters: {
+        companies: [],
+        warehouses: [],
+        brands: [],
+        groups: [],
+      },
     }
+  },
+  resources: {
+    filterData: {
+      url: 'optilens_vue.api.get_filter_options',
+      auto: true,
+    },
   },
   methods: {
     generateValues() {
@@ -121,10 +239,16 @@ export default {
       }
       return values
     },
+    toggleSection(section) {
+      this.openSections[section] = !this.openSections[section]
+    },
     handleCellClick(sph, cly) {
       console.log(`Clicked cell: SPH=${sph.toFixed(2)}, CLY=${cly.toFixed(2)}`)
-      // You can add custom logic here, e.g., show a modal, edit quantity, etc.
       alert(`SPH: ${sph.toFixed(2)}, CLY: ${cly.toFixed(2)}`)
+    },
+    applyFilters() {
+      console.log('Applying filters:', this.filters)
+      this.sidebarOpen = false
     },
   },
 }
