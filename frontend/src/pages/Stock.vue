@@ -14,7 +14,7 @@
     >
       <div class="p-4 flex flex-col h-full">
         <div class="flex items-center justify-between mb-4">
-          <h2 class="text-xl font-bold text-gray-900">Menu</h2>
+          <h2 class="text-xl font-bold text-gray-900">Filtering</h2>
           <button
             @click="sidebarOpen = false"
             class="text-gray-500 hover:text-gray-700"
@@ -74,14 +74,20 @@
               </svg>
             </button>
             <div v-show="openSections.warehouse" class="p-2 space-y-2">
-              <label v-for="warehouse in ($resources.filterData.data?.warehouses || [])" :key="warehouse" class="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-1 rounded">
+              <p v-if="filters.companies.length === 0" class="text-sm text-gray-500 italic">
+                Select a company first
+              </p>
+              <p v-else-if="filteredWarehouses.length === 0" class="text-sm text-gray-500 italic">
+                No warehouses for selected companies
+              </p>
+              <label v-for="warehouse in filteredWarehouses" :key="warehouse.name" class="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-1 rounded">
                 <input
                   type="checkbox"
                   v-model="filters.warehouses"
-                  :value="warehouse"
+                  :value="warehouse.name"
                   class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                 />
-                <span class="text-sm text-gray-700">{{ warehouse }}</span>
+                <span class="text-sm text-gray-700">{{ warehouse.name }}</span>
               </label>
             </div>
           </div>
@@ -164,9 +170,9 @@
         class="mb-4 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg hover:bg-blue-700 transition-colors flex items-center"
       >
         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
         </svg>
-        Menu
+        Filters
       </button>
 
       <!-- CLY x SPH Matrix -->
@@ -229,6 +235,15 @@ export default {
     filterData: {
       url: 'optilens_vue.api.get_filter_options',
       auto: true,
+    },
+  },
+  computed: {
+    filteredWarehouses() {
+      const allWarehouses = this.$resources.filterData.data?.warehouses || []
+      if (this.filters.companies.length === 0) {
+        return []
+      }
+      return allWarehouses.filter(w => this.filters.companies.includes(w.company))
     },
   },
   methods: {

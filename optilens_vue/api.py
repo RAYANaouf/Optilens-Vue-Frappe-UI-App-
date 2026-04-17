@@ -137,13 +137,13 @@ def get_filter_options():
         companies = frappe.db.get_all('Company', fields=['name'], limit=50)
         company_list = [c['name'] for c in companies]
         
-        # Get warehouses
+        # Get warehouses with company
         warehouses = frappe.db.get_all('Warehouse', 
             filters={'is_group': 0, 'disabled': 0},
-            fields=['name'],
+            fields=['name', 'company'],
             limit=50
         )
-        warehouse_list = [w['name'] for w in warehouses]
+        warehouse_list = [{'name': w['name'], 'company': w.get('company', '')} for w in warehouses]
         
         # Get brands
         brands = frappe.db.get_all('Brand', 
