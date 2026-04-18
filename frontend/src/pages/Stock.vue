@@ -179,9 +179,9 @@
       <div class="bg-white rounded-lg shadow">
         <div class="overflow-auto max-h-[70vh]">
           <table class="w-full text-sm">
-            <thead>
+            <thead class="sticky top-0 z-20">
               <tr>
-                <th class="px-2 py-2 bg-gray-100 sticky left-0 z-10">SPH \ CLY</th>
+                <th class="px-2 py-2 bg-gray-100 sticky left-0 z-30">SPH \ CLY</th>
                 <th v-for="cly in clyValues" :key="cly" class="px-2 py-2 bg-gray-100 text-center min-w-[60px]">
                   {{ cly.toFixed(2) }}
                 </th>
