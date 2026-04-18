@@ -242,12 +242,17 @@ def get_stock_matrix(companies=None, warehouses=None, brands=None, groups=None):
         
         results = frappe.db.sql(query, params, as_dict=True)
         
+        # Debug: Check for negative quantities
+        negative_items = [r for r in results if r.actual_qty < 0]
+        print(f">>> Total items: {len(results)}, Negative qty items: {len(negative_items)}")
+        if negative_items:
+            print(f">>> First negative item: {negative_items[0]}")
+        
         # Format data for matrix - items have SPH and CLY (come from POS or Optic app) attributes
         matrix_data = {}
         
         for row in results:
             # Extract SPH and CLY from item_code or custom fields
-            print("Found the item! : ", row , "with cly = ", row.get('custom_cly') , "and sph = ", row.get('custom_sph'))
             sph = row.get('custom_sph', 0)
             cly = row.get('custom_cly', 0)
             
