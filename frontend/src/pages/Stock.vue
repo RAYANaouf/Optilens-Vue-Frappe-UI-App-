@@ -210,6 +210,8 @@
 </template>
 
 <script>
+import { frappeRequest } from 'frappe-ui'
+
 export default {
   name: 'Stock',
   data() {
@@ -289,10 +291,8 @@ export default {
       console.log(`Clicked cell: SPH=${sph.toFixed(2)}, CLY=${cly.toFixed(2)}`)
       alert(`SPH: ${sph.toFixed(2)}, CLY: ${cly.toFixed(2)}`)
     },
-    applyFilters() {
-      alert('APPLY FILTERS CLICKED!')
+    async applyFilters() {
       console.log('>>> applyFilters called')
-      console.log('>>> this.$frappe:', this.$frappe)
       const params = {
         companies: this.filters.companies,
         warehouses: this.filters.warehouses,
@@ -301,31 +301,23 @@ export default {
       }
       console.log('>>> Sending params:', params)
       
-      // Use frappe.call directly for better debugging
-      if (!this.$frappe || !this.$frappe.call) {
-        console.error('>>> ERROR: this.$frappe.call is not available!')
-        alert('Error: frappe.call not available')
-        return
-      }
-      
-      this.$frappe.call({
-        method: 'optilens_vue.api.get_stock_matrix',
-        args: params
-      }).then(response => {
+      try {
+        const response = await frappeRequest({
+          url: '/api/method/optilens_vue.api.get_stock_matrix',
+          params: params
+        })
         console.log('>>> API Response:', response)
-        alert('API Success! Check console.')
-        if (response.message) {
-          // Store the data manually since we're not using the resource
-          this.$resources.stockMatrix.data = response.message
-          console.log('>>> Stock Matrix Data:', response.message)
-          console.log('>>> Matrix Keys:', Object.keys(response.message.matrix || {}))
-          console.log('>>> Total Items:', response.message.items?.length)
-          console.log('>>> Total Qty:', response.message.total_qty)
-        }
-      }).catch(error => {
+        
+        // Store the data manually
+        this.$resources.stockMatrix.data = response
+        console.log('>>> Stock Matrix Data:', response)
+        console.log('>>> Matrix Keys:', Object.keys(response.matrix || {}))
+        console.log('>>> Total Items:', response.items?.length)
+        console.log('>>> Total Qty:', response.total_qty)
+      } catch (error) {
         console.error('>>> API Error:', error)
         alert('API Error! Check console.')
-      })
+      }
       
       this.sidebarOpen = false
     },

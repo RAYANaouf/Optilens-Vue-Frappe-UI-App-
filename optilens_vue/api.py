@@ -190,7 +190,7 @@ def get_stock_matrix(companies=None, warehouses=None, brands=None, groups=None):
             groups = frappe.parse_json(groups) or []
         
         # Build base query
-        conditions = ["b.actual_qty > 0"]
+        conditions = []
         params = []
         
         # Join with Item and Warehouse
@@ -219,7 +219,7 @@ def get_stock_matrix(companies=None, warehouses=None, brands=None, groups=None):
             params['groups'] = groups
         
         # Build and execute query
-        where_clause = " AND ".join(conditions)
+        where_clause = " AND ".join(conditions) if conditions else "1=1"
         joins = " ".join(join_conditions)
         
         query = f"""
@@ -228,6 +228,8 @@ def get_stock_matrix(companies=None, warehouses=None, brands=None, groups=None):
                 b.warehouse,
                 b.actual_qty,
                 i.item_name,
+                i.custom_sph,
+                i.custom_cyl,
                 i.brand,
                 i.item_group,
                 w.company
@@ -245,6 +247,7 @@ def get_stock_matrix(companies=None, warehouses=None, brands=None, groups=None):
         
         for row in results:
             # Extract SPH and CLY from item_code or custom fields
+            print("Found the item! : ", row , "with cly = ", row.get('custom_cly') , "and sph = ", row.get('custom_sph'))
             sph = row.get('custom_sph', 0)
             cly = row.get('custom_cly', 0)
             
