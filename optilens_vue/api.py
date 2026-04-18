@@ -174,3 +174,101 @@ def get_filter_options():
             'brands': [],
             'groups': [],
         }
+
+@frappe.whitelist()
+def get_stock_matrix(companies=None, warehouses=None, brands=None, groups=None):
+    """Get stock matrix data based on filters"""
+    try:
+        # Parse JSON strings if needed
+        if isinstance(companies, str):
+            companies = frappe.parse_json(companies) or []
+        if isinstance(warehouses, str):
+            warehouses = frappe.parse_json(warehouses) or []
+        if isinstance(brands, str):
+            brands = frappe.parse_json(brands) or []
+        if isinstance(groups, str):
+            groups = frappe.parse_json(groups) or []
+        
+        # Build base query
+        conditions = ["b.actual_qty > 0"]
+        params = []
+        
+        # Join with Item and Warehouse
+        join_conditions = [
+            "LEFT JOIN `tabItem` i ON b.item_code = i.item_code",
+            "LEFT JOIN `tabWarehouse` w ON b.warehouse = w.name"
+        ]
+        
+        # Apply warehouse filter (also filters by company implicitly)
+        if warehouses:
+            conditions.append("b.warehouse IN %(warehouses)s")
+            params['warehouses'] = warehouses
+        elif companies:
+            # If no warehouses selected but companies selected, filter by company
+            conditions.append("w.company IN %(companies)s")
+            params['companies'] = companies
+        
+        # Apply brand filter
+        if brands:
+            conditions.append("i.brand IN %(brands)s")
+            params['brands'] = brands
+        
+        # Apply item group filter
+        if groups:
+            conditions.append("i.item_group IN %(groups)s")
+            params['groups'] = groups
+        
+        # Build and execute query
+        where_clause = " AND ".join(conditions)
+        joins = " ".join(join_conditions)
+        
+        query = f"""
+            SELECT 
+                b.item_code,
+                b.warehouse,
+                b.actual_qty,
+                i.item_name,
+                i.brand,
+                i.item_group,
+                w.company
+            FROM `tabBin` b
+            {joins}
+            WHERE {where_clause}
+            ORDER BY b.item_code, b.warehouse
+            LIMIT 1000
+        """
+        
+        results = frappe.db.sql(query, params, as_dict=True)
+        
+        # Format data for matrix - items have SPH and CLY (come from POS or Optic app) attributes
+        matrix_data = {}
+        
+        for row in results:
+            # Extract SPH and CLY from item_code or custom fields
+            sph = row.get('custom_sph', 0)
+            cly = row.get('custom_cly', 0)
+            
+            key = f"{sph}_{cly}"
+            if key not in matrix_data:
+                matrix_data[key] = 0
+            matrix_data[key] += row.actual_qty
+        
+        return {
+            'matrix': matrix_data,
+            'items': results,
+            'total_qty': sum(r.actual_qty for r in results),
+            'filters_applied': {
+                'companies': companies,
+                'warehouses': warehouses,
+                'brands': brands,
+                'groups': groups
+            }
+        }
+    except Exception as e:
+        frappe.log_error(f"Error fetching stock matrix: {e}")
+        return {
+            'matrix': {},
+            'items': [],
+            'total_qty': 0,
+            'filters_applied': {}
+        }

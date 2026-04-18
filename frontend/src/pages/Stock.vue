@@ -196,8 +196,8 @@
                   class="px-2 py-2 text-center border cursor-pointer hover:bg-blue-50 transition-colors"
                   @click="handleCellClick(sph, cly)"
                 >
-                  <div class="w-full h-full flex items-center justify-center min-h-[30px]">
-                    0
+                  <div class="w-full h-full flex items-center justify-center min-h-[30px] font-medium" :class="getCellValue(sph, cly) > 0 ? 'text-blue-600' : 'text-gray-400'">
+                    {{ getCellValue(sph, cly) }}
                   </div>
                 </td>
               </tr>
@@ -236,6 +236,34 @@ export default {
       url: 'optilens_vue.api.get_filter_options',
       auto: true,
     },
+    stockMatrix: {
+      url: 'optilens_vue.api.get_stock_matrix',
+      auto: false,
+      onSuccess(data) {
+        console.log('===>Stock Matrix Data:', data)
+        console.log('===>Filters Applied:', data.filters_applied)
+        console.log('===>Matrix:', data.matrix)
+        console.log('===>Matrix Keys:', Object.keys(data.matrix || {}))
+        console.log('===>Total Items:', data.items?.length)
+        console.log('===>Total Qty:', data.total_qty)
+        // Check first few items for SPH/CLY values
+        if (data.items?.length > 0) {
+          console.log('===>First 3 items:', data.items.slice(0, 3))
+          // Check for SPH/CLY in custom fields
+          data.items.slice(0, 5).forEach((item, idx) => {
+            console.log(`===>Item ${idx} custom fields:`, {
+              item_code: item.item_code,
+              custom_sph: item.custom_sph,
+              custom_cly: item.custom_cly,
+              allKeys: Object.keys(item).filter(k => k.includes('sph') || k.includes('cly') || k.includes('sph') || k.includes('cyl'))
+            })
+          })
+        }
+      },
+      onError(error) {
+        console.error('>>--->Error fetching stock matrix:', error)
+      },
+    },
   },
   computed: {
     filteredWarehouses() {
@@ -262,8 +290,54 @@ export default {
       alert(`SPH: ${sph.toFixed(2)}, CLY: ${cly.toFixed(2)}`)
     },
     applyFilters() {
-      console.log('Applying filters:', this.filters)
+      alert('APPLY FILTERS CLICKED!')
+      console.log('>>> applyFilters called')
+      console.log('>>> this.$frappe:', this.$frappe)
+      const params = {
+        companies: this.filters.companies,
+        warehouses: this.filters.warehouses,
+        brands: this.filters.brands,
+        groups: this.filters.groups,
+      }
+      console.log('>>> Sending params:', params)
+      
+      // Use frappe.call directly for better debugging
+      if (!this.$frappe || !this.$frappe.call) {
+        console.error('>>> ERROR: this.$frappe.call is not available!')
+        alert('Error: frappe.call not available')
+        return
+      }
+      
+      this.$frappe.call({
+        method: 'optilens_vue.api.get_stock_matrix',
+        args: params
+      }).then(response => {
+        console.log('>>> API Response:', response)
+        alert('API Success! Check console.')
+        if (response.message) {
+          // Store the data manually since we're not using the resource
+          this.$resources.stockMatrix.data = response.message
+          console.log('>>> Stock Matrix Data:', response.message)
+          console.log('>>> Matrix Keys:', Object.keys(response.message.matrix || {}))
+          console.log('>>> Total Items:', response.message.items?.length)
+          console.log('>>> Total Qty:', response.message.total_qty)
+        }
+      }).catch(error => {
+        console.error('>>> API Error:', error)
+        alert('API Error! Check console.')
+      })
+      
       this.sidebarOpen = false
+    },
+    getCellValue(sph, cly) {
+      const matrix = this.$resources.stockMatrix.data?.matrix || {}
+      const key = `${sph}_${cly}`
+      const value = matrix[key] || 0
+      // Debug logging for first few cells
+      if (sph === 0 && cly === 0) {
+        console.log('Matrix lookup:', { sph, cly, key, value, availableKeys: Object.keys(matrix).slice(0, 10) })
+      }
+      return value
     },
   },
 }
